@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forge Weapon Calculator</title>
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background:#f0f0f0; }
+h1 { text-align:center; }
+.content-wrapper { max-width: 800px; margin:auto; background:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1);}
+.ore-input-row { display:flex; align-items:center; margin-bottom:10px; }
+.input-wrapper { position:relative; flex:1; margin-right:10px; }
+.ore-search { width:100%; padding:5px;}
+.clear-btn { position:absolute; right:5px; top:5px; cursor:pointer; display:none;}
+.ore-options { list-style:none; margin:0; padding:0; border:1px solid #ccc; max-height:120px; overflow:auto; display:none; position:absolute; background:white; width:100%; z-index:10;}
+.ore-options li { padding:5px; cursor:pointer; }
+.ore-options li:hover { background:#eee; }
+#calculateBtn { margin-top:10px; padding:10px 20px; }
+#result { white-space: pre-line; margin-top:20px; background:#f9f9f9; padding:10px; border-radius:5px; }
+</style>
+</head>
+<body>
+
+<div class="content-wrapper">
+<h1>Forge Weapon Calculator</h1>
+
+<!-- Weapon Selection -->
+<label for="weaponSelect">Select Weapon:</label>
+<select id="weaponSelect"></select>
+<br><br>
+
+<!-- Material inputs -->
+<div id="materialInputs">
+  <div class="ore-input-row">
+    <div class="input-wrapper">
+      <input type="text" id="name1" class="ore-search" placeholder="Select Material #1">
+      <button class="clear-btn" data-target="name1">×</button>
+      <ul class="ore-options" id="options1"></ul>
+    </div>
+    <input type="number" id="amt1" placeholder="Amount #1">
+  </div>
+  <div class="ore-input-row">
+    <div class="input-wrapper">
+      <input type="text" id="name2" class="ore-search" placeholder="Select Material #2">
+      <button class="clear-btn" data-target="name2">×</button>
+      <ul class="ore-options" id="options2"></ul>
+    </div>
+    <input type="number" id="amt2" placeholder="Amount #2">
+  </div>
+  <div class="ore-input-row">
+    <div class="input-wrapper">
+      <input type="text" id="name3" class="ore-search" placeholder="Select Material #3">
+      <button class="clear-btn" data-target="name3">×</button>
+      <ul class="ore-options" id="options3"></ul>
+    </div>
+    <input type="number" id="amt3" placeholder="Amount #3">
+  </div>
+  <div class="ore-input-row">
+    <div class="input-wrapper">
+      <input type="text" id="name4" class="ore-search" placeholder="Select Material #4">
+      <button class="clear-btn" data-target="name4">×</button>
+      <ul class="ore-options" id="options4"></ul>
+    </div>
+    <input type="number" id="amt4" placeholder="Amount #4">
+  </div>
+</div>
+
+<button id="calculateBtn">Calculate Final Damage</button>
+
+<div id="result"></div>
+</div>
+
+<script>
+const ores = {
+    "Stone Ore": { multiplier: 0.2 },
+    "Sand Stone": { multiplier: 0.25 },
+    "Copper Ore": { multiplier: 0.3 },
+    "Iron Ore": { multiplier: 0.35 },
+    "Tin Ore": { multiplier: 0.425 },
+    "Silver Ore": { multiplier: 0.5 },
+    "Gold Ore": { multiplier: 0.65 },
+    "Mushroomite Ore": { multiplier: 0.8 },
+    "Platinum Ore": { multiplier: 0.8 },
+    "Bananite Ore": { multiplier: 0.85 },
+    "Cardboardite Ore": { multiplier: 0.7 },
+    "Aite Ore": { multiplier: 1.0 },
+    "Poopite Ore": { multiplier: 1.2 },
+    "Cobalt Ore": { multiplier: 1.0 },
+    "Titanium Ore": { multiplier: 1.15 },
+    "Lapis Lazuli Ore": { multiplier: 1.3 },
+    "Volcanic Rock": { multiplier: 1.55 },
+    "Quartz Ore": { multiplier: 1.5 },
+    "Amethyst Ore": { multiplier: 1.65 },
+    "Topaz Ore": { multiplier: 1.75 },
+    "Diamond Ore": { multiplier: 2.0 },
+    "Sapphire Ore": { multiplier: 2.25 },
+    "Cuprite Ore": { multiplier: 2.43 },
+    "Obsidian Ore": { multiplier: 2.35 },
+    "Emerald Ore": { multiplier: 2.55 },
+    "Ruby Ore": { multiplier: 2.95 },
+    "Rivalite Ore": { multiplier: 3.33 },
+    "Uranium Ore": { multiplier: 3.0 },
+    "Mythril Ore": { multiplier: 3.5 },
+    "Eye Ore": { multiplier: 4.0 },
+    "Fireite Ore": { multiplier: 4.5 },
+    "Magmaite Ore": { multiplier: 5.0 },
+    "Lightite Ore": { multiplier: 4.6 },
+    "Demonite Ore": { multiplier: 5.5 },
+    "Darkryte Ore": { multiplier: 6.3 },
+    "Magenta Crystal Ore": { multiplier: 3.1 },
+    "Crimson Crystal Ore": { multiplier: 3.3 },
+    "Green Crystal Ore": { multiplier: 3.2 },
+    "Orange Crystal Ore": { multiplier: 3.0 },
+    "Blue Crystal Ore": { multiplier: 3.4 },
+    "Rainbow Crystal Ore": { multiplier: 5.25 },
+    "Arcane Crystal Ore": { multiplier: 7.5 },
+    "Galaxite Ore": { multiplier: 11.5 },
+    "Vooite Ore": { multiplier: 0.0 }
+};
+
+const weapons = {
+    "Dagger": { "Dagger": 4.3, "Falchion Knife": 4.3, "Gladius": 4.3 },
+    "Straight Sword": { "Falchion": 7.5, "Cutlass": 9.375, "Rapier": 7.5 },
+    "Gauntlet": { "Gauntlet": 7.6 },
+    "Katana": { "Uchigatana": 8.5 },
+    "Great Sword": { "Crusader Sword": 12, "Long Sword": 12 },
+    "Great Axe": { "Scythe": 14.25, "Double Battle Axe": 15.75 },
+    "Colossal Sword": { "Great Sword": 20, "Dragon Slayer": 22, "Hammer": 22, "Skull Crusher": 24 }
+};
+
+const weaponSelect = document.getElementById("weaponSelect");
+for (const type in weapons) {
+    for (const w in weapons[type]) {
+        let opt = document.createElement("option");
+        opt.value = `${type}||${w}`;
+        opt.textContent = `${w} (${type}) - Base: ${weapons[type][w]}`;
+        weaponSelect.appendChild(opt);
+    }
+}
+
+function setupOreSearch() {
+    const oreNames = Object.keys(ores);
+    document.querySelectorAll(".ore-search").forEach((input, idx) => {
+        const list = document.getElementById(`options${idx+1}`);
+        list.innerHTML = "";
+
+        oreNames.forEach(o => {
+            const li = document.createElement("li");
+            li.textContent = o;
+            li.addEventListener("click", () => {
+                input.value = o;
+                list.style.display = "none";
+            });
+            list.appendChild(li);
+        });
+
+        input.addEventListener("input", () => {
+            const val = input.value.toLowerCase();
+            let visible = false;
+            list.querySelectorAll("li").forEach(li => {
+                if (li.textContent.toLowerCase().startsWith(val)) {
+                    li.style.display = "";
+                    visible = true;
+                } else li.style.display = "none";
+            });
+            list.style.display = visible ? "block" : "none";
+            input.parentElement.querySelector(".clear-btn").style.display = input.value ? "block" : "none";
+        });
+
+        document.addEventListener("click", e => {
+            if (!input.contains(e.target) && !list.contains(e.target)) list.style.display = "none";
+        });
+    });
+}
+setupOreSearch();
+
+document.querySelectorAll(".clear-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const target=document.getElementById(btn.dataset.target);
+    target.value="";
+    btn.style.display="none";
+  });
+  const input=document.getElementById(btn.dataset.target);
+  input.addEventListener("input", ()=>{ btn.style.display=input.value?"block":"none"; });
+});
+
+document.getElementById("calculateBtn").addEventListener("click", ()=>{
+  const selectedOres = {};
+  for(let i=1;i<=4;i++){
+    const name = document.getElementById(`name${i}`).value.trim();
+    const amt = parseFloat(document.getElementById(`amt${i}`).value);
+    if(name && amt>0 && ores[name]) selectedOres[name] = amt;
+  }
+
+  if(Object.keys(selectedOres).length===0){
+    document.getElementById("result").innerText="Select at least 1 material"; 
+    return; 
+  }
+
+  let total = 0, sumAmt = 0;
+  for(const [k,v] of Object.entries(selectedOres)){
+    total += ores[k].multiplier * v;
+    sumAmt += v;
+  }
+  const combined = total / sumAmt;
+
+  const [type, name] = weaponSelect.value.split("||");
+  const base = weapons[type][name];
+  const RealBase = base * 2;
+  const finalDamage = RealBase * combined;
+
+  let traitsInfo = "";
+  for(const oreName of Object.keys(selectedOres)){
+    if(ores[oreName].traits && ores[oreName].traits.length){
+      traitsInfo += `\n${oreName} Traits:\n`;
+      ores[oreName].traits.forEach(tr => {
+        traitsInfo += `- ${tr.description} (Max: ${tr.maxStat}${tr.type ? ", Type: " + tr.type : ""})\n`;
+      });
+    }
+  }
+
+  document.getElementById("result").innerText =
+    `Weapon: ${name} (${type})
+Real Base Damage: ${RealBase}
+Combined Material Multiplier: ${combined.toFixed(2)}
+Final Damage: ${finalDamage.toFixed(2)}${traitsInfo}`;
+});
+
+
+</script>
+</body>
+</html>
