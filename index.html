@@ -127,7 +127,22 @@ const weapons = {
     "Great Axe": { "Scythe": 14.25, "Double Battle Axe": 15.75 },
     "Colossal Sword": { "Great Sword": 20, "Dragon Slayer": 22, "Hammer": 22, "Skull Crusher": 24 }
 };
-
+const weaponCooldowns = {
+    "Dagger": 0.35,
+    "Falchion Knife": 0.59,
+    "Cutlass": 0.66,
+    "Rapier": 0.49,
+    "Gauntlet": 0.51,       
+    "Uchigatana": 0.6,
+    "Crusader Sword": 1.0,
+    "Long Sword": 1.11,
+    "Scythe": 0.95,
+    "Double Battle Axe": 1.05,
+    "Great Sword": 1.12,
+    "Dragon Slayer": 1.12,
+    "Hammer": 1.24,
+    "Skull Crusher": 1.4
+};
 const weaponSelect = document.getElementById("weaponSelect");
 for (const type in weapons) {
     for (const w in weapons[type]) {
@@ -218,15 +233,18 @@ document.getElementById("calculateBtn").addEventListener("click", ()=>{
       });
     }
   }
-
-  document.getElementById("result").innerText =
-    `Weapon: ${name} (${type})
+let cooldown = weaponCooldowns[name] || 1;
+let dps = finalDamage / cooldown;
+document.getElementById("result").innerText =
+  `Weapon: ${name} (${type})
 Real Base Damage: ${RealBase}
 Combined Material Multiplier: ${combined.toFixed(2)}
-Final Damage: ${finalDamage.toFixed(2)}${traitsInfo}`;
+Final Damage: ${finalDamage.toFixed(2)}
+DPS: ${dps.toFixed(2)}${traitsInfo}`;
 });
 
 
 </script>
 </body>
 </html>
+
